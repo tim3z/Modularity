@@ -7,7 +7,11 @@ class Cluster
   end
 
   def total_weight_fraction
-    nodes.inject(0) { |sum, node| sum + node.summed_edge_weight } / (2 * @graph.total_weight)
+    total_weight / (2 * @graph.total_weight)
+  end
+
+  def total_weight
+    nodes.inject(0) { |sum, node| sum + node.summed_edge_weight }
   end
 
   def inner_weight_fraction
@@ -48,19 +52,13 @@ class Cluster
 
     k_ito, k_ifrom = 0, 0
     node.each_edge do |edge|
-      k_ifrom += edge.weight if @nodes.include? edge.to
-      k_ito += edge.weight if to.nodes.include? edge.to
+      k_ifrom += edge.weight if @nodes.include?(edge.to) && edge.to != node
+      k_ito += edge.weight if to.nodes.include?(edge.to)
     end
 
-    self_weight = 0
-    node.each_edge do |edge|
-      if edge.to == node
-        self_weight = edge.weight
-        break
-      end
-    end
-
-    (k_ito - to.total_weight_fraction * node.summed_edge_weight + k_ifrom + 2*self_weight - total_weight_fraction * node.summed_edge_weight) / @graph.total_weight
+    first = 2 * (k_ito - k_ifrom) / @graph.total_weight
+    second = 2 * node.summed_edge_weight * (to.total_weight - self.total_weight + node.summed_edge_weight) / (@graph.total_weight ** 2)
+    first - second
   end
 
   def merge! other
