@@ -26,10 +26,6 @@ class Node
 
   def summed_edge_weight
     return @weight unless @weight.nil?
-    @weight = 0
-    each_edge do |edge|
-      @weight += edge.weight
-    end
-    @weight
+    @weight = @edges.inject(0) { |sum, edge| sum + (edge.weight / ((edge.loop? ? 2 : 1))) }
   end
 end

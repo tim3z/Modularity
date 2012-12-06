@@ -7,6 +7,7 @@ class Cluster
   end
 
   def total_weight_fraction
+    #nodes.inject(0) { |sum, node| sum + node.summed_edge_weight } / (2 * @graph.total_weight)
     weight = 0
     @nodes.each do |node|
       node.each_edge do |edge|
@@ -46,7 +47,7 @@ class Cluster
   end
 
   def remove node
-    @nodes -= node
+    @nodes.delete node
   end
 
   def modularity_change_for_move node, to
@@ -54,11 +55,11 @@ class Cluster
 
     k_ito, k_ifrom = 0, 0
     node.each_edge do |edge|
-      k_ifrom += edge.weight @nodes.include? edge.to
-      k_ito += edge.weight to.nodes.include? edge.to
+      k_ifrom += edge.weight if @nodes.include? edge.to
+      k_ito += edge.weight if to.nodes.include? edge.to
     end
 
-    ((k_ito - to.total_weight_fraction * node.summed_edge_weight) - k_ifrom + (total_weight_fraction - node.summed_edge_weight / (2 * g.total_weight)) * node.summed_edge_weight) / g.total_weight
+    ((k_ito - to.total_weight_fraction * node.summed_edge_weight) - k_ifrom + (total_weight_fraction - node.summed_edge_weight / (2 * @graph.total_weight)) * node.summed_edge_weight) / @graph.total_weight
   end
 
   def merge! other

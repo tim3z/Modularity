@@ -6,7 +6,7 @@ class Graph
     @nodes = {}
   end
 
-  def add_node id
+  def create_node id
     @nodes[id] = Node.new id
   end
 
@@ -67,9 +67,10 @@ class Graph
 
     (clustering.size - 1).times do
       i, j = nil
-      max = (-1.0/0.0) # -infinity
+      max = -Float::INFINITY
       clustering.permutation(2) .each do |perm|
         modularity_increase = 2 * (perm[0].weight_fraction_to(perm[1]) - perm[0].inner_weight_fraction * perm[1].inner_weight_fraction)
+        puts "c1: #{perm[0]} c2: #{perm[1]} delta_mod: #{modularity_increase}"
         if i.nil? || j.nil? || modularity_increase > max
           max = modularity_increase
           i, j = perm[0], perm[1]
@@ -87,14 +88,14 @@ class Graph
 
     max = -1
     final = nil
-    clusterings.each do |clustering|
-      q = modularity(clustering)
+    clusterings.each do |c|
+      q = modularity(c)
       if final.nil? || q > max
-        final, max = clustering, q
+        final, max = c, q
       end
     end
 
-    return final, max
+    final
   end
 
   def singleton_clustering
@@ -106,7 +107,14 @@ class Graph
   end
 
   def louvain
+    puts "pass"
     clustering = singleton_clustering
+
+    test = Cluster.new self
+    test.add @nodes.values
+    puts modularity [test]
+    puts modularity singleton_clustering
+
     node_to_cluster = {}
     clustering.each do |cluster|
       node_to_cluster[cluster.nodes[0]] = cluster
@@ -123,6 +131,7 @@ class Graph
         node.each_adjacent do |connected_node|
           target = node_to_cluster[connected_node]
           move = origin.modularity_change_for_move node, target
+          puts "node: #{node.id} origin: #{origin} cluster: #{target} delta_mod: #{move}"
           best_move, cluster = move, target if origin != target && (cluster.nil? || move > best_move)
         end
 
@@ -137,7 +146,26 @@ class Graph
 
     unless clustering.inject(true) { |result, cluster| result && cluster.nodes.size == 1 } # something changed
       g = Graph.new
-      #clustering. TODO
+      clustering.each_with_index do |cluster, i|
+        (g.create_node i).data = cluster unless cluster.nodes.empty?
+      end
+
+      for i in 0...clustering.size
+        for j in i...clustering.size
+          weight = (clustering[i].weight_fraction_to(clustering[j]) * total_weight * ((i == j) ? 1 : 2))
+          g.add_edge i, j,weight unless weight == 0
+        end
+      end
+
+      meta_clustering = g.louvain
+      clustering = []
+      meta_clustering.each do |cluster|
+        clustering << c = Cluster.new(self)
+        cluster.nodes.each do |node|
+          c.add node.data.nodes
+        end
+      end
     end
+    clustering.reject { |cluster| cluster.nodes.size == 0 }
   end
 end

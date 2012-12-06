@@ -7,4 +7,8 @@ class Edge
     @to = node_b
     @weight = weight
   end
+
+  def loop?
+    @from == @to
+  end
 end
