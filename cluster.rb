@@ -53,12 +53,12 @@ class Cluster
     k_ito, k_ifrom = 0, 0
     node.each_edge do |edge|
       k_ifrom += edge.weight if @nodes.include?(edge.to) && edge.to != node
-      k_ito += edge.weight if to.nodes.include?(edge.to)
+      k_ito += edge.weight if to.nodes.include?(edge.to) && edge.to != node
     end
 
     first = 2 * (k_ito - k_ifrom) / @graph.total_weight
-    second = 2 * node.summed_edge_weight * (to.total_weight - self.total_weight + node.summed_edge_weight) / (@graph.total_weight ** 2)
-    first - second
+    second = node.summed_edge_weight * ((to.total_weight - (to.nodes.include?(node) ? node.summed_edge_weight : 0)) - (self.total_weight - node.summed_edge_weight)) / (@graph.total_weight ** 2)
+    (first - second) / 2
   end
 
   def merge! other

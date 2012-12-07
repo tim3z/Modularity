@@ -110,11 +110,6 @@ class Graph
     puts "pass"
     clustering = singleton_clustering
 
-    test = Cluster.new self
-    test.add @nodes.values
-    puts modularity [test]
-    puts modularity singleton_clustering
-
     node_to_cluster = {}
     clustering.each do |cluster|
       node_to_cluster[cluster.nodes[0]] = cluster
@@ -136,10 +131,13 @@ class Graph
         end
 
         if best_move > 0
+          puts modularity clustering
+          puts "move  val: #{best_move}"
           increased = true
           origin.remove node
           cluster << node
           node_to_cluster[node] = cluster
+          puts modularity clustering
         end
       end
     end
