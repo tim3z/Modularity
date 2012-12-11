@@ -16,6 +16,6 @@ g = Graph.build [1,2, 1,3, 1,4, 2,3, 2,4, 3,4,
 #
 #puts g.modularity g.singleton_clustering
 
-c = g.louvain
+c = g.cnm
 puts c
 puts g.modularity c

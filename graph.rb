@@ -18,11 +18,7 @@ class Graph
   end
 
   def modularity clustering
-    modularity = 0
-    clustering.each do |cluster|
-      modularity += cluster.inner_weight_fraction - cluster.total_weight_fraction ** 2
-    end
-    modularity
+    clustering.inject(0) { |sum, cluster| sum + cluster.inner_weight_fraction - cluster.total_weight_fraction ** 2 }
   end
 
   def total_weight
@@ -66,10 +62,11 @@ class Graph
     clusterings = []
 
     (clustering.size - 1).times do
+      puts modularity clustering
       i, j = nil
       max = -Float::INFINITY
       clustering.permutation(2) .each do |perm|
-        modularity_increase = 2 * (perm[0].weight_fraction_to(perm[1]) - perm[0].inner_weight_fraction * perm[1].inner_weight_fraction)
+        modularity_increase = 2 * (perm[0].weight_fraction_to(perm[1]) - perm[0].total_weight_fraction * perm[1].total_weight_fraction)
         puts "c1: #{perm[0]} c2: #{perm[1]} delta_mod: #{modularity_increase}"
         if i.nil? || j.nil? || modularity_increase > max
           max = modularity_increase
@@ -109,6 +106,7 @@ class Graph
   def louvain
     puts "pass"
     clustering = singleton_clustering
+    puts modularity clustering
 
     node_to_cluster = {}
     clustering.each do |cluster|
