@@ -74,4 +74,12 @@ class Cluster
     end
     s
   end
+
+  def self.singleton_clustering graph
+    graph.nodes.values.map do |node|
+      c = Cluster.new graph
+      c << node
+      c
+    end
+  end
 end
