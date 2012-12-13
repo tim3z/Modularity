@@ -108,21 +108,16 @@ class Graph
     clustering = singleton_clustering
     puts modularity clustering
 
-    node_to_cluster = {}
-    clustering.each do |cluster|
-      node_to_cluster[cluster.nodes[0]] = cluster
-    end
-
     increased = true
     while increased
       increased = false
 
       @nodes.each_value do |node|
-        origin = node_to_cluster[node]
+        origin = node.data[:cluster]
         best_move = 0
         cluster = nil
         node.each_adjacent do |connected_node|
-          target = node_to_cluster[connected_node]
+          target = connected_node.data[:cluster]
           move = origin.modularity_change_for_move node, target
           puts "node: #{node.id} origin: #{origin} cluster: #{target} delta_mod: #{move}"
           best_move, cluster = move, target if origin != target && (cluster.nil? || move > best_move)
@@ -134,17 +129,15 @@ class Graph
           increased = true
           origin.remove node
           cluster << node
-          node_to_cluster[node] = cluster
           puts modularity clustering
         end
       end
     end
 
+    clustering.reject! { |cluster| cluster.nodes.size == 0 }
     unless clustering.inject(true) { |result, cluster| result && cluster.nodes.size == 1 } # something changed
       g = Graph.new
-      clustering.each_with_index do |cluster, i|
-        (g.create_node i).data = cluster unless cluster.nodes.empty?
-      end
+      clustering.each_with_index { |cluster, i| (g.create_node i).data[:subgraph] = cluster }
 
       for i in 0...clustering.size
         for j in i...clustering.size
@@ -158,10 +151,10 @@ class Graph
       meta_clustering.each do |cluster|
         clustering << c = Cluster.new(self)
         cluster.nodes.each do |node|
-          c.add node.data.nodes
+          c.add node.data[:subgraph].nodes
         end
       end
     end
-    clustering.reject { |cluster| cluster.nodes.size == 0 }
+    clustering
   end
 end

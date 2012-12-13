@@ -30,10 +30,12 @@ class Cluster
 
   def << node
     @nodes << node
+    node.data[:cluster] = self
   end
 
   def add nodes
     @nodes += nodes
+    nodes.each { |node| node.data[:cluster] = self }
   end
 
   def merge other
@@ -45,6 +47,7 @@ class Cluster
 
   def remove node
     @nodes.delete node
+    node.data[:cluster] = nil
   end
 
   def modularity_change_for_move node, to
@@ -52,11 +55,11 @@ class Cluster
 
     k_ito, k_ifrom = 0, 0
     node.each_edge do |edge|
-      k_ifrom += edge.weight if @nodes.include?(edge.to) && edge.to != node
-      k_ito += edge.weight if to.nodes.include?(edge.to) && edge.to != node
+      k_ifrom += edge.weight if edge.to.data[:cluster] == self && edge.to != node
+      k_ito += edge.weight if edge.to.data[:cluster] == to && edge.to != node
     end
 
-    ((k_ito - k_ifrom) / @graph.total_weight) - node.summed_edge_weight * ((to.total_weight - (to.nodes.include?(node) ? node.summed_edge_weight : 0)) - (self.total_weight - node.summed_edge_weight)) / (2 * @graph.total_weight ** 2)
+    ((k_ito - k_ifrom) / @graph.total_weight) - node.summed_edge_weight * ((to.total_weight - (node.data[:cluster] == to ? node.summed_edge_weight : 0)) - (self.total_weight - node.summed_edge_weight)) / (2 * @graph.total_weight ** 2)
   end
 
   def merge! other

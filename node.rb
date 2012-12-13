@@ -5,6 +5,7 @@ class Node
   def initialize id
     @id = id
     @edges = []
+    @data = {}
   end
 
   def add_edge e
