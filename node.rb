@@ -1,5 +1,5 @@
 class Node
-  attr_reader :id
+  attr_reader :id, :edges
   attr_accessor :data
 
   def initialize id
