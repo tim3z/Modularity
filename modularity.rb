@@ -9,12 +9,12 @@ module Modularity
     clusterings = []
 
     (clustering.size - 1).times do
-      puts modularity clustering
+      #puts modularity clustering
       i, j = nil
       max = -Float::INFINITY
       clustering.permutation(2) .each do |perm|
         modularity_increase = 2 * (perm[0].weight_fraction_to(perm[1]) - perm[0].total_weight_fraction * perm[1].total_weight_fraction)
-        puts "c1: #{perm[0]} c2: #{perm[1]} delta_mod: #{modularity_increase}"
+        #puts "c1: #{perm[0]} c2: #{perm[1]} delta_mod: #{modularity_increase}"
         if i.nil? || j.nil? || modularity_increase > max
           max = modularity_increase
           i, j = perm[0], perm[1]
@@ -45,7 +45,7 @@ module Modularity
   def louvain
     puts "pass"
     clustering = Cluster.singleton_clustering self
-    puts modularity clustering
+    #puts modularity clustering
 
     increased = true
     while increased
@@ -58,17 +58,17 @@ module Modularity
         node.each_adjacent do |connected_node|
           target = connected_node.data[:cluster]
           move = origin.modularity_change_for_move node, target
-          puts "node: #{node.id} origin: #{origin} cluster: #{target} delta_mod: #{move}"
+          #puts "node: #{node.id} origin: #{origin} cluster: #{target} delta_mod: #{move}"
           best_move, cluster = move, target if origin != target && (cluster.nil? || move > best_move)
         end
 
         if best_move > 0
-          puts modularity clustering
-          puts "move  val: #{best_move}"
+          #puts modularity clustering
+          #puts "move  val: #{best_move}"
           increased = true
           origin.remove node
           cluster << node
-          puts modularity clustering
+          #puts modularity clustering
         end
       end
     end

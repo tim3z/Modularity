@@ -18,17 +18,26 @@ def facebook_neighborhood token
   fb = Koala::Facebook::API.new token
   g = Graph.new
 
-  my_id = fb.get_object('tim.zeitz')['id']
-  g.create_node(my_id).data[:name] = 'Tim Zeitz'
+  me = fb.get_object('me')
+  g.create_node(me['id']).data[:name] = me['name']
   friends = fb.get_connection('me', 'friends')
   friends.each do |friend|
     g.create_node(friend['id']).data[:name] = friend['name']
-    g.add_edge my_id, friend['id']
+    g.add_edge me['id'], friend['id']
   end
-  friends.each do |friend|
-    fb.get_connections('me', "mutualfriends/#{friend['id']}").each do |other_friend|
-      unless g.get_node(friend['id']).edges.map { |edge| edge.to.id }.include? other_friend['id']
-        g.add_edge friend['id'], other_friend['id']
+
+  mutuals = []
+  friends.each_slice(50) do |slice|
+    mutuals += fb.batch do |batch|
+      slice.each do |friend|
+        batch.get_connections('me', "mutualfriends/#{friend['id']}")
+      end
+    end
+  end
+  for i in 0...friends.size
+    mutuals[i].each do |other_friend|
+      unless g.get_node(friends[i]['id']).edges.map { |edge| edge.to.id }.include? other_friend['id']
+        g.add_edge friends[i]['id'], other_friend['id']
       end
     end
   end
@@ -36,7 +45,8 @@ def facebook_neighborhood token
   g
 end
 
-#g = facebook_neighborhood
+puts "enter token"
+g = facebook_neighborhood gets
 
 c = g.louvain
 c.each do |cluster|
