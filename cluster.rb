@@ -22,7 +22,7 @@ class Cluster
     weight = 0
     @nodes.each do |node|
       node.each_edge do |edge|
-        weight += edge.weight if cluster.nodes.include? edge.to
+        weight += edge.weight if edge.to.data[:cluster] == cluster
       end
     end
     weight / (2 * @graph.total_weight)
@@ -64,7 +64,14 @@ class Cluster
 
   def merge! other
     @nodes += other.nodes
+    other.nodes.each { |node| node.date[:cluster] = self }
     self
+  end
+
+  ##
+  # sets each nodes cluster data to this cluster
+  def reapply_nodes
+    @nodes.each { |node| node.data[:cluster] = self }
   end
 
   def to_s

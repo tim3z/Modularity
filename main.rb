@@ -2,6 +2,10 @@ require_relative 'graph'
 require_relative 'cluster'
 require 'koala'
 
+def log s
+  puts s
+end
+
 def k_4_k_4
   Graph.build [1,2, 1,3, 1,4, 2,3, 2,4, 3,4,
                5,6, 5,7, 5,8, 6,7, 6,8, 7,8,
