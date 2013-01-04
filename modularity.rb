@@ -61,6 +61,7 @@ module Modularity
         if best_move > 0
           increased = true
           origin.remove node
+          # TODO O(n^2)
           cluster << node
         end
       end

@@ -39,9 +39,11 @@ def facebook_neighborhood token
     end
   end
   for i in 0...friends.size
-    mutuals[i].each do |other_friend|
-      unless g.get_node(friends[i]['id']).edges.map { |edge| edge.to.id }.include? other_friend['id']
-        g.add_edge friends[i]['id'], other_friend['id']
+    if mutuals[i] # TODO mutuals not initialized??
+      mutuals[i].each do |other_friend|
+        unless g.get_node(friends[i]['id']).edges.map { |edge| edge.to.id }.include? other_friend['id']
+          g.add_edge friends[i]['id'], other_friend['id']
+        end
       end
     end
   end
@@ -49,11 +51,50 @@ def facebook_neighborhood token
   g
 end
 
-puts "enter token"
-g = facebook_neighborhood gets
-
-c = g.louvain
-c.each do |cluster|
-  puts cluster.nodes.map { |node| node.data[:name] }.inject { |all, name| all + ", " + name }
+def to_dot clustering
+  File.open 'dotfile', 'w' do |f|
+    f.puts "graph {"
+    i = -1
+    clustering.each do |cluster|
+      f.puts "subgraph cluster#{i += 1} {"
+      cluster.nodes.each do |node|
+        f.puts "\"#{node.data[:name]}\""
+      end
+      f.puts "}"
+    end
+    clustering.each do |cluster|
+      cluster.nodes.each do |node|
+        node.edges.each do |edge|
+          f.puts "\"#{node.data[:name]}\" -- \"#{edge.to.data[:name]}\"" unless edge.to.data[:marked]
+        end
+        node.data[:marked] = true
+      end
+    end
+    f.puts "}"
+  end
 end
-puts g.modularity c
+
+def print_named_clustering c
+  c.each do |cluster|
+    puts cluster.nodes.map { |node| node.data[:name] }.inject { |all, name| all + ", " + name }
+  end
+  puts g.modularity c
+end
+
+def facebook
+  puts "enter token"
+  g = facebook_neighborhood gets
+
+  log "graph obtained, starting clustering"
+  c = g.louvain
+
+  log "generating dotfile"
+  to_dot c
+
+  log "drawing graph"
+  exec "fdp dotfile -Tpng -ograph.png"
+
+  log "done"
+end
+
+facebook
