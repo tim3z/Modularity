@@ -1,0 +1,9 @@
+Some hacking with graph clusterings and modularity.
+
+Main script will fetch one's facebook direct neighborhood, cluster it and draw a nice png :-)
+
+Requirements:
+ * Ruby 
+ * the koala gem
+ * the graphviz tools
+ * a facebook access token - go to graph.facebook.com -> tools -> graph explorer, you'll need to enable the facebook graph app.
